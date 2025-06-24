@@ -76,33 +76,57 @@ func GetAllPatients(w http.ResponseWriter, r *http.Request) {
 
 
 func UpdatePatient(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
+    vars := mux.Vars(r)
+    id := vars["id"]
 
-	var updated models.Patient
-	err := json.NewDecoder(r.Body).Decode(&updated)
-	if err != nil {
-		log.Println("❌ Error decoding update:", err)
-		http.Error(w, "Invalid input", http.StatusBadRequest)
-		return
-	}
+    var updated models.Patient
+    err := json.NewDecoder(r.Body).Decode(&updated)
+    if err != nil {
+        log.Println("❌ Error decoding update:", err)
+        http.Error(w, "Invalid input", http.StatusBadRequest)
+        return
+    }
 
-	query := `UPDATE patients SET name=$1, age=$2, gender=$3, diagnosis=$4 WHERE id=$5 RETURNING created_by, created_at`
-	err = config.DB.QueryRow(query, updated.Name, updated.Age, updated.Gender, updated.Diagnosis, id).
-		Scan(&updated.CreatedBy, &updated.CreatedAt)
-	if err != nil {
-		log.Println("❌ DB Update Error:", err)
-		http.Error(w, "Update failed", http.StatusInternalServerError)
-		return
-	}
+    // ✅ Extract email from header
+    email := r.Header.Get("X-User-Email")
+    if email == "" {
+        http.Error(w, "Missing X-User-Email header", http.StatusUnauthorized)
+        return
+    }
 
-	updated.ID = parseID(id)
-	config.LogVisit("/patients/"+id, "PUT")
+    // ✅ Fetch role from DB
+    var role string
+    err = config.DB.QueryRow("SELECT role FROM users WHERE email = $1", email).Scan(&role)
+    if err != nil {
+        log.Println("❌ Failed to get user role:", err)
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
 
-	log.Println("✅ Patient updated:", id)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(updated)
+    // ✅ Check if user is allowed to update
+    if role != "doctor" && role != "receptionist" {
+        http.Error(w, "Only doctors or receptionists can update patients", http.StatusForbidden)
+        return
+    }
+
+    // 🛠️ Update patient
+    query := `UPDATE patients SET name=$1, age=$2, gender=$3, diagnosis=$4 WHERE id=$5 RETURNING created_by, created_at`
+    err = config.DB.QueryRow(query, updated.Name, updated.Age, updated.Gender, updated.Diagnosis, id).
+        Scan(&updated.CreatedBy, &updated.CreatedAt)
+    if err != nil {
+        log.Println("❌ DB Update Error:", err)
+        http.Error(w, "Update failed", http.StatusInternalServerError)
+        return
+    }
+
+    updated.ID = parseID(id)
+    config.LogVisit("/patients/"+id, "PUT")
+
+    log.Println("✅ Patient updated:", id)
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(updated)
 }
+
 
 func parseID(s string) int {
 	var id int

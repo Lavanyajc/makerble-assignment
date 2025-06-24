@@ -28,7 +28,13 @@ func main() {
         r.HandleFunc("/patients/{id}", handlers.GetPatientByID).Methods("GET")
 
 	fmt.Println("🚀 Server is running on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	port := os.Getenv("PORT")
+       if port == "" {
+         port = "8080" // fallback for local dev
+          }
+           fmt.Printf("🚀 Server is running on port %s...\n", port)
+           log.Fatal(http.ListenAndServe(":"+port, r))
+
 }
 
 
