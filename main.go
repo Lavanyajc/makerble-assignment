@@ -37,7 +37,8 @@ func main() {
          port = "8080" // fallback for local dev
           }
            fmt.Printf("🚀 Server is running on port %s...\n", port)
-           log.Fatal(http.ListenAndServe(":"+port, r))
+           log.Fatal(http.ListenAndServe("0.0.0.0:"+port, r))
+
 
 }
 
