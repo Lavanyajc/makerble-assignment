@@ -1,13 +1,13 @@
  ### 📘 Makerble Backend API Documentation
 
-## 📽️ Demo Video for postman
+## 📽️ Demo Video - postman
 
 👉 [Live demo](https://drive.google.com/file/d/1O3_CVSabkrVC-r4H150SfI7zhsL7epRG/view?usp=sharing)
 
 ---
 
 
-## 📽️ Demo Video for curl 
+## 📽️ Demo Video - curl 
 
 👉 [Live demo](https://drive.google.com/file/d/18rCr5bljQj6BY_TTuo0Ebnb2pwU2MHAz/view?usp=sharing)
 
