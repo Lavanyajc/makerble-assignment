@@ -26,6 +26,10 @@ func main() {
 	r.HandleFunc("/patients", handlers.GetAllPatients).Methods("GET")
         r.HandleFunc("/patients/{id}", handlers.UpdatePatient).Methods("PUT")
         r.HandleFunc("/patients/{id}", handlers.GetPatientByID).Methods("GET")
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+              w.Write([]byte("API is live!"))
+       })
+
 
 	fmt.Println("🚀 Server is running on port 8080...")
 	port := os.Getenv("PORT")
