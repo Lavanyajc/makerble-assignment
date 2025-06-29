@@ -31,7 +31,7 @@ func main() {
 
 	// ✅ Root route
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hii Lavanya , API is live!"))
+		w.Write([]byte("hii Lavanya J C, API is live !!"))
 	})
 
 	// ✅ Server start
