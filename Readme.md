@@ -49,21 +49,34 @@ A backend web application built with Golang and PostgreSQL that simulates a hosp
 ---
 
 ## 📦 Project Structure
-
 ```
 makerble-clean/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml              # ✅ GitHub Actions CI/CD trigger for Render
+│
 ├── config/
-│   └── db.go
+│   ├── db.go                       # ✅ DB connection setup (ConnectDB)
+│   ├── logger.go                   # (optional) Structured logging setup
+│   └── migration.go                # DB table creation (users, patients, logs)
+│
 ├── handlers/
-│   ├── user_handler.go
-│   └── patient_handler.go
+│   ├── patient_handler.go         # CRUD logic for patient APIs
+│   └── user_handler.go            # User signup/login logic
+│
 ├── models/
-│   ├── user.go
-│   └── patient.go
-├── .env
-├── main.go
-├── README.md
-└── api_docs.md
+│   ├── patient.go                 # Patient struct + DB mapping
+│   ├── user.go                    # User struct + DB mapping
+│   └── visit_log.go              # Visit log struct + DB mapping
+│
+├── .env                           # 🔐 Environment variables (DB creds, port)
+├── go.mod                         # 📦 Module definition (with pq driver etc.)
+├── go.sum                         # 🔐 Module hash verifications
+├── main.go                        # 🚀 Entry point (sets up routes, server)
+│
+├── README.md                      # 📘 Project intro, usage, setup steps
+├── api_docs.md                    # 📚 Manual API documentation (endpoints, samples)
+└── cmds-used.md                   # 📜 List of all Go/Git/Docker commands used
 ```
 
 ---
