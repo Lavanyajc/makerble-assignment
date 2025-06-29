@@ -5,7 +5,7 @@
 ## 📽️ Demo Video 
 
 👉 [Live demo of curl requests] (https://drive.google.com/file/d/18rCr5bljQj6BY_TTuo0Ebnb2pwU2MHAz/view?usp=sharing)
-
+👉 [Live demo of post requests] (https://drive.google.com/file/d/1O3_CVSabkrVC-r4H150SfI7zhsL7epRG/view?usp=sharing)
 👉  Deploying video--- upcoming
 
 
