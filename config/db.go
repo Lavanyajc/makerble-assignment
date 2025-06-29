@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/lib/pq"
+         _ "github.com/lib/pq"
 )
 
 var DB *sql.DB
