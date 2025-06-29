@@ -26,10 +26,14 @@ func main() {
 	r.HandleFunc("/patients", handlers.GetAllPatients).Methods("GET")
         r.HandleFunc("/patients/{id}", handlers.UpdatePatient).Methods("PUT")
         r.HandleFunc("/patients/{id}", handlers.GetPatientByID).Methods("GET")
+      HEAD
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
               w.Write([]byte("API is live!"))
        })
 
+
+        r.HandleFunc("/patients/{id}", handlers.DeletePatient).Methods("DELETE")
+        c28ed58 (🐛 Fix unused import and update patient handler + main)
 
 	fmt.Println("🚀 Server is running on port 8080...")
 	port := os.Getenv("PORT")

@@ -5,45 +5,67 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-        "github.com/gorilla/mux"
+	"strconv"
+	"strings"
+	"github.com/gorilla/mux"
 	"makerble-clean/config"
 	"makerble-clean/models"
 )
 
 // POST /patients
 func CreatePatient(w http.ResponseWriter, r *http.Request) {
-	var patient models.Patient
+    var patient models.Patient
 
-	err := json.NewDecoder(r.Body).Decode(&patient)
-	if err != nil {
-		log.Println("❌ Error decoding patient:", err)
-		http.Error(w, "Invalid input", http.StatusBadRequest)
-		return
-	}
+    err := json.NewDecoder(r.Body).Decode(&patient)
+    if err != nil {
+        log.Println("❌ Error decoding patient:", err)
+        http.Error(w, "Invalid input", http.StatusBadRequest)
+        return
+    }
 
-	query := `INSERT INTO patients (name, age, gender, diagnosis, created_by)
-	          VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at`
+    // ✅ Normalize gender to lowercase
+    patient.Gender = strings.ToLower(patient.Gender)
 
-	err = config.DB.QueryRow(query,
-		patient.Name,
-		patient.Age,
-		patient.Gender,
-		patient.Diagnosis,
-		patient.CreatedBy,
-	).Scan(&patient.ID, &patient.CreatedAt)
+    // ✅ Validate allowed gender values
+    allowedGenders := map[string]bool{
+        "male":   true,
+        "female": true,
+        "other":  true,
+    }
 
-	if err != nil {
-		log.Println("❌ DB Error:", err)
-		http.Error(w, "Failed to create patient", http.StatusInternalServerError)
-		return
-	}
+    if !allowedGenders[patient.Gender] {
+        log.Println("❌ Invalid gender:", patient.Gender)
+        http.Error(w, "Invalid gender. Allowed values: male, female, other", http.StatusBadRequest)
+        return
+    }
 
-	config.LogVisit("/patients", "POST")
+    // ✅ Insert patient into DB
+    query := `INSERT INTO patients (name, age, gender, diagnosis, created_by)
+              VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at`
 
-	log.Println("✅ Patient created:", patient.Name)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(patient)
+    err = config.DB.QueryRow(query,
+        patient.Name,
+        patient.Age,
+        patient.Gender,
+        patient.Diagnosis,
+        patient.CreatedBy,
+    ).Scan(&patient.ID, &patient.CreatedAt)
+
+    if err != nil {
+        log.Println("❌ DB Error:", err)
+        http.Error(w, "Failed to create patient", http.StatusInternalServerError)
+        return
+    }
+
+    // ✅ Log the visit
+    config.LogVisit("/patients", "POST")
+
+    log.Println("✅ Patient created:", patient.Name)
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(patient)
 }
+
+
 
 // GET /patients
 func GetAllPatients(w http.ResponseWriter, r *http.Request) {
@@ -164,3 +186,37 @@ func GetPatientByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(patient)
 }
 
+func DeletePatient(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    idStr := vars["id"]
+
+    // 🔍 Convert ID to integer
+    id, err := strconv.Atoi(idStr)
+    if err != nil {
+        http.Error(w, "Invalid patient ID", http.StatusBadRequest)
+        return
+    }
+
+    // 🗑️ Delete patient from DB
+    query := "DELETE FROM patients WHERE id = $1"
+    result, err := config.DB.Exec(query, id)
+    if err != nil {
+        log.Println("❌ DB Error:", err)
+        http.Error(w, "Failed to delete patient", http.StatusInternalServerError)
+        return
+    }
+
+    rowsAffected, _ := result.RowsAffected()
+    if rowsAffected == 0 {
+        http.Error(w, "Patient not found", http.StatusNotFound)
+        return
+    }
+
+    // 🔒 Log the visit
+    config.LogVisit("/patients/"+idStr, "DELETE")
+
+    // ✅ Success response
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte(`{"message": "Patient deleted successfully"}`))
+}
