@@ -43,6 +43,6 @@ func ConnectDB() {
 		log.Fatal("❌ Cannot connect to DB: ", err)
 	}
 
-	fmt.Println("✅ Successfully connected to PostgreSQL!")
+	fmt.Println("✅Hii JC , Successfully connected to PostgreSQL !!")
 }
 
